@@ -12,7 +12,7 @@ final int PORT_OUT = 9002; // Port where JUCE listens for data
 final String IP_LOCAL = "127.0.0.1";
 
 // ============================================================================
-// AUDIO PRODUCTION DATA REGISTERS
+// Initialization of Audio Data controls
 // ============================================================================
 float valDryWet = 0.5;
 float valDrive  = 0.2;
@@ -22,11 +22,11 @@ float valVolume = 0.8;
 int waveSelectorIndex = 0;
 float incomingWaveSample = 0.0;
 
-// Storage array to draw the trailing oscilloscope trace line
+// Storage array to draw the waveform 
 float[] scopeBuffer = new float[150];
 
 // ============================================================================
-// CORE PROCESSING LIFECYCLE
+// CORE 
 // ============================================================================
 void setup() {
   size(850, 450);
@@ -55,7 +55,7 @@ void draw() {
   // 3. Render the dynamic screen and live oscilloscope engine
   drawOscilloscopeModule(520, 100, 280, 200);
   
-  // 4. Smoothly advance sample tracking arrays
+  // 4. Advance sample tracking arrays
   updateOscilloscopeHistory();
 }
 
@@ -71,7 +71,7 @@ void initNetworkOSC() {
 }
 
 // ============================================================================
-// INBOUND OSC ROUTING HANDLER (JUCE -> Processing)
+// IN OSC ROUTING HANDLER (JUCE -> Processing)
 // ============================================================================
 void oscEvent(OscMessage msg) {
   String pattern = msg.addrPattern();
@@ -100,7 +100,7 @@ void oscEvent(OscMessage msg) {
 }
 
 // ============================================================================
-// OUTBOUND OSC MESSAGING HANDLER (Processing -> JUCE)
+// OUT OSC MESSAGING HANDLER (Processing -> JUCE)
 // ============================================================================
 void transmitParameterToJuce(String addressPattern, float parameterValue) {
   OscMessage messagePacket = new OscMessage(addressPattern);
@@ -111,7 +111,7 @@ void transmitParameterToJuce(String addressPattern, float parameterValue) {
 }
 
 // ============================================================================
-// MOUSE INTERACTION AND DRAG INTERPRETATION LOGIC
+// MOUSE INTERACTION AND DRAG 
 // ============================================================================
 void mouseDragged() {
   // Bound check mouse to only process if clicking inside the vertical fader bounds
@@ -140,7 +140,7 @@ void mouseDragged() {
 }
 
 // ============================================================================
-// MODULAR RENDERING ENGINE SUB-FUNCTIONS
+// RENDERING FUNCTIONS
 // ============================================================================
 void drawFaderModule(int x, String label, float value, color fillCol) {
   noStroke();

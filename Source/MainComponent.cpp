@@ -51,10 +51,10 @@ void MainComponent::sliderValueChanged(juce::Slider* slider)
 
 void MainComponent::oscMessageReceived(const juce::OSCMessage& message)
 {
-    // Ensure the message actually contains data
+    // Ensure the message contains data
     if (message.size() == 0) return;
 
-    // Safely extract the first argument element directly using array indexing
+    // Extract the first argument element directly using array indexing
     float receivedVal = message[0].getFloat32();
     juce::String path = message.getAddressPattern().toString();
 

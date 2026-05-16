@@ -5,7 +5,7 @@ class MainComponent : public juce::Component,
     public juce::Slider::Listener,
     public juce::Timer,
     public juce::OSCReceiver,
-    public juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback> // FIXED HERE
+    public juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback> 
 {
 public:
     MainComponent();
