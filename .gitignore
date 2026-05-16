@@ -1,0 +1,19 @@
+# JUCE specific
+/*/Builds/
+/*/JuceLibraryCode/
+
+# Processing specific
+bin/
+out/
+*.class
+
+# OS specific
+.DS_Store
+Thumbs.db
+.Spotlight-V100
+.Trashes
+/Builds
+/JuceLibraryCode
+*.ipch
+.vs/SpaGhetto.slnx/FileContentIndex/10b2908b-38aa-4085-9562-c78efb27935a.vsidx
+/.vs
