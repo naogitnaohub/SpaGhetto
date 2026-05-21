@@ -1,3 +1,9 @@
+// This class has functions for drawing the WAVETABLE
+// This full wavetable is drawn once, we can change the ''3D'' projection angle and the density of waveforms.
+// It uses P2D and makes fake 3d by mapping x and y coordinates to the ''3d'' x' and y' in function of z-index.
+// It highlights the current (z-index) waveform in yellow, this is the only part that runs continuously, the background wavetable is drown only once
+
+
 class WaveDrawer {
   // Layout parameters
   private float xPos, yPos;
