@@ -37,6 +37,7 @@ void mouseDragged() {
   if (minimap.over(mouseX, mouseY)) {
     minimap.handleClick(mouseX, mouseY, orbit); return;
   }
+  for (HorizontalFader f : faders) f.checkMouseDragged(mouseX);
   
   for (HorizontalFader f : faders) {
     f.checkMouseDragged(mouseX, mouseY);
