@@ -24,6 +24,9 @@ HorizontalFader fScale, fRadius, fSpeed;
 HorizontalFader[] faders;
 PFont font;
 
+// --- network ---
+OscNetworkManager net; // Global instance for the network tab
+
 // --- stato ---
 float phase = 0;
 int   lastTime = 0;
@@ -71,7 +74,7 @@ void layout() {
 
   fScale  = new HorizontalFader(px, fy + fh*0, SIDE_W, fh, "SCALE",  0.3, 5.0);
   fRadius = new HorizontalFader(px, fy + fh*1, SIDE_W, fh, "RADIUS", 0.2, 6.0);
-  fSpeed  = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED",  0.1, 4.0);
+  fSpeed = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED", 0.1, 4.0);
   faders  = new HorizontalFader[] { fScale, fRadius, fSpeed };
   fScale.setValue(sV); fRadius.setValue(rV); fSpeed.setValue(pV);
 
@@ -79,6 +82,10 @@ void layout() {
   minimap = new Minimap(px, my, SIDE_W, mapH);
 
   lastW = width; lastH = height;
+  // Initialize independent connection links right before clock time capture
+  net = new OscNetworkManager(this);
+
+  lastTime = millis();
 }
 
 void draw() {
@@ -97,4 +104,9 @@ void draw() {
   render3D();
   drawViewport();
   drawSidePanel();
+}
+
+// Global router forwards network packets directly to your manager tab
+void oscEvent(OscMessage msg) {
+  if (net != null) net.parseIncoming(msg);
 }
