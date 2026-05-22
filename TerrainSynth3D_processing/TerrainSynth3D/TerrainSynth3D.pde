@@ -7,7 +7,7 @@
 final color BG      = #0c0b0a;
 final color SURFACE = #161310;
 final color ACCENT  = #4ade80;
-final color AMBER   = #d946ef   ;
+final color AMBER   = #d946ef;
 
 // --- layout ---
 float PAD = 18, SIDE_W = 460;
@@ -23,6 +23,9 @@ Minimap      minimap;
 HorizontalFader fScale, fRadius, fSpeed;
 HorizontalFader[] faders;
 PFont font;
+
+// --- network ---
+OscNetworkManager net; // Global instance for the network tab
 
 // --- stato ---
 float phase = 0;
@@ -57,12 +60,15 @@ void setup() {
 
   fScale  = new HorizontalFader(px, fy + fh*0, SIDE_W, fh, "SCALE",  0.3, 5.0);
   fRadius = new HorizontalFader(px, fy + fh*1, SIDE_W, fh, "RADIUS", 0.2, 6.0);
-  fSpeed  = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED",  0.1, 4.0);
+  fSpeed = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED", 0.1, 4.0);
   faders  = new HorizontalFader[] { fScale, fRadius, fSpeed };
   fScale.setValue(1.5); fRadius.setValue(2.0); fSpeed.setValue(1.0);
 
   float my = fy + 3*fh + gap + scopeH + gap;
   minimap = new Minimap(px, my, SIDE_W, mapH);
+
+  // Initialize independent connection links right before clock time capture
+  net = new OscNetworkManager(this);
 
   lastTime = millis();
 }
@@ -80,4 +86,9 @@ void draw() {
   render3D();
   drawViewport();
   drawSidePanel();
+}
+
+// Global router forwards network packets directly to your manager tab
+void oscEvent(OscMessage msg) {
+  if (net != null) net.parseIncoming(msg);
 }
