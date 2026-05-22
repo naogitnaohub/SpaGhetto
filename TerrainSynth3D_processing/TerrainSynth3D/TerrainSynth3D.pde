@@ -48,6 +48,7 @@ void setup() {
   orbit   = new Orbit3D();
   cam     = new CameraRig();
   scope   = new Oscilloscope(256);
+  net     = new OscNetworkManager(this);   // <-- qui
 
   layout();
   lastTime = millis();
@@ -83,8 +84,6 @@ void layout() {
 
   lastW = width; lastH = height;
   // Initialize independent connection links right before clock time capture
-  net = new OscNetworkManager(this);
-
   lastTime = millis();
 }
 
