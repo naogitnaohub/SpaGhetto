@@ -44,8 +44,8 @@ class HorizontalFader {
   void checkMousePressed(float mx, float my) {
     if (over(mx, my)) { dragging = true; updateFromMouse(mx); }
   }
-  void checkMouseDragged(float mx) { if (dragging) updateFromMouse(mx); }
-  void release() { dragging = false; }
+void checkMouseDragged(float mx, float my) { if (dragging) updateFromMouse(mx); }
+void release() { dragging = false; }
 
   private void updateFromMouse(float mx) {
     float pad = 22;
