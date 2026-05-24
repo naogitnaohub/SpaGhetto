@@ -1,11 +1,11 @@
 // ---- Pin ----
-const int JOY_X  = A0;   // joystick asse X  (analogico)
-const int JOY_Y  = A1;   // joystick asse Y  (analogico)
+const int JOY_X  = A3;   // joystick asse X  (analogico)
+const int JOY_Y  = A4;   // joystick asse Y  (analogico)
 const int JOY_SW = 2;    // joystick pulsante (digitale)
 
 const int ACC_X  = A2;   // MMA7361 asse X (analogico)
-const int ACC_Y  = A3;   // MMA7361 asse Y (analogico)
-const int ACC_Z  = A4;   // MMA7361 asse Z (analogico)
+const int ACC_Y  = A1;   // MMA7361 asse Y (analogico)
+const int ACC_Z  = A0;   // MMA7361 asse Z (analogico)
 
 void setup() {
   Serial.begin(115200);

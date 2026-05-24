@@ -2,7 +2,7 @@ import serial
 from pythonosc.udp_client import SimpleUDPClient
 
 # --- configurazione (modifica solo queste se serve) ---
-PORT = "COM4"          # <-- metti qui la TUA porta (quella vista nell'IDE)
+PORT = "COM5"          # <-- metti qui la TUA porta (quella vista nell'IDE)
 BAUD = 115200          # deve combaciare con Serial.begin() su Arduino
 
 SC_IP   = "127.0.0.1"  # localhost: SuperCollider sullo stesso PC
@@ -12,7 +12,7 @@ SC_PORT = 57120        # porta standard di SuperCollider
 arduino = serial.Serial(PORT, BAUD)
 osc = SimpleUDPClient(SC_IP, SC_PORT)
 print("Bridge avviato. Leggo da", PORT)
-
+prev_sw = None
 # --- loop infinito ---
 while True:
     line = arduino.readline().decode().strip()   # legge "512,498,1,410,395,602"
@@ -29,8 +29,13 @@ while True:
     except (ValueError, IndexError):
         continue   # riga incompleta o sporca: la salto
 
-    # invio i valori a SuperCollider
-    osc.send_message("/joystick", [jx, jy, sw])   # tre valori in un solo messaggio
-    osc.send_message("/accel",    [ax, ay, az])   # tre valori in un solo messaggio
+# i 5 valori di movimento su /sensors, nell'ordine che SC si aspetta:
+    # msg[1]=cx, msg[2]=cy, msg[3]=r, msg[4]=a, msg[5]=b
+    osc.send_message("/sensors", [jx, jy, ax, ay, az])
 
-    print(jx, jy, sw, "|", ax, ay, az)   # debug: vediamo cosa arriva
+    # il pulsante su /btn, solo quando cambia stato
+    if sw != prev_sw:
+        osc.send_message("/btn", sw)
+        prev_sw = sw
+
+    print(jx, jy, sw, "|", ax, ay, az)   # debug
