@@ -1,4 +1,5 @@
 class Orbit3D {
+  
   float cx = 0, cz = 0, r = 2.0;
   final float LIFT = -0.07;
 
@@ -14,14 +15,14 @@ class Orbit3D {
     for (int i = 0; i <= N; i++) {
       float t = (i / (float)N) * TWO_PI;
       float x = cx + r * cos(t), z = cz + r * sin(t);
-      g.vertex(x, terrain.terrain(x, z) * terrain.YSCALE + LIFT, z);
+      g.vertex(x, terrain.terrain(terrain.waveNumber, x, z) * terrain.YSCALE + LIFT, z);
     }
     g.endShape();
 
     // --- pallino sull'orbita ---
     float tx = cx + r * cos(phase);
     float tz = cz + r * sin(phase);
-    float ty = terrain.terrain(tx, tz) * terrain.YSCALE;
+    float ty = terrain.terrain(terrain.waveNumber, tx, tz) * terrain.YSCALE;
     g.pushMatrix();
     g.translate(tx, ty - 0.12, tz);
     g.noStroke(); g.fill(0); g.sphere(0.08);

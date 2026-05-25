@@ -10,7 +10,7 @@ final color ACCENT  = #4ade80;
 final color AMBER   = #d946ef;
 
 // --- layout ---
-float PAD = 18, SIDE_W = 460;
+float PAD = 18, SIDE_W;
 float viewX, viewY, viewW, viewH;
 
 // --- mondo ---
@@ -20,7 +20,7 @@ Orbit3D      orbit;
 CameraRig    cam;
 Oscilloscope scope;
 Minimap      minimap;
-HorizontalFader fScale, fRadius, fSpeed;
+HorizontalFader fScale, fRadius, fSpeed, fWaveTerrain;
 HorizontalFader[] faders;
 PFont font;
 
@@ -40,6 +40,7 @@ void settings() {
 int lastW = -1, lastH = -1;
 
 void setup() {
+  SIDE_W = width/3;
   surface.setLocation(0, 0);
   surface.setTitle("Terrain Synth 3D");
   font = createFont("Consolas", 32, true);
@@ -64,28 +65,46 @@ void layout() {
   view3D = createGraphics((int)viewW, (int)viewH, P3D);
 
   float px = viewX + viewW + PAD;
-  float gap = 14, scopeH = 150, mapH = 240;
+  float gap = 14;
   float fy = PAD;
-  float fh = (height - fy - PAD - scopeH - mapH - 2*gap) / 3.0;
+  
+  // --- RESPONSIVE HEIGHT ALLOCATION ---
+  // Subtract paddings and spacing gaps from total screen height
+  float totalAvailableH = height - (2 * PAD) - (3 * gap);
+  
+  float scopeH = totalAvailableH * 0.25; // Oscilloscope gets 25% of the space
+  float mapH   = totalAvailableH * 0.25; // Minimap gets 40% of the space
+  float fadersTotalH = totalAvailableH * 0.5; // Faders share the remaining 35%
+  float fh     = fadersTotalH / 4.0;    // Divided equally among 4 fader rows
 
-  // se i fader esistono già, conservo il valore corrente
+  // Preserve existing slider values if already initialized
   float sV = fScale  != null ? fScale.getValue()  : 1.5;
   float rV = fRadius != null ? fRadius.getValue() : 2.0;
   float pV = fSpeed  != null ? fSpeed.getValue()  : 1.0;
+  float wV = fWaveTerrain != null ? fWaveTerrain.getIntValue() : 1.0;
 
   fScale  = new HorizontalFader(px, fy + fh*0, SIDE_W, fh, "SCALE",  0.3, 5.0);
   fRadius = new HorizontalFader(px, fy + fh*1, SIDE_W, fh, "RADIUS", 0.2, 6.0);
-  fSpeed = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED", 0.1, 4.0);
-  faders  = new HorizontalFader[] { fScale, fRadius, fSpeed };
-  fScale.setValue(sV); fRadius.setValue(rV); fSpeed.setValue(pV);
+  fSpeed  = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED",  0.1, 4.0);
+  fWaveTerrain = new HorizontalFader(px, fy + fh*3, SIDE_W, fh, "WAVE TERRAIN FUNCTION", 1.0, 4.0);
+  
+  faders  = new HorizontalFader[] { fScale, fRadius, fSpeed, fWaveTerrain };
+  fScale.setValue(sV); fRadius.setValue(rV); fSpeed.setValue(pV); fWaveTerrain.setIntValue(wV);
 
-  float my = fy + 3*fh + gap + scopeH + gap;
-  minimap = new Minimap(px, my, SIDE_W, mapH);
+  // Position coordinates calculated dynamically
+  float sy = fy + (fh * 4) + gap;
+  float my = sy + scopeH + gap; 
+  
+  if (minimap == null) {
+    minimap = new Minimap(px, my, SIDE_W, mapH);
+  } else {
+    minimap.updatePosition(px, my, SIDE_W, mapH); // Push updates to the map container
+  }
 
   lastW = width; lastH = height;
-  // Initialize independent connection links right before clock time capture
   lastTime = millis();
 }
+
 
 void draw() {
   // ricalcola layout se la finestra è stata ridimensionata
@@ -98,6 +117,9 @@ void draw() {
   terrain.setA(fScale.getValue());
   orbit.setRadius(fRadius.getValue());
   phase = (phase + TWO_PI * fSpeed.getValue() * dt) % TWO_PI;
+  
+  int currentWave = fWaveTerrain.getIntValue(); 
+  terrain.setWaveNumber(currentWave);
 
   background(BG);
   render3D();
