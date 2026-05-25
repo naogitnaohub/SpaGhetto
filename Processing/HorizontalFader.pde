@@ -37,7 +37,7 @@ class HorizontalFader {
 
   void render() {
     pushStyle();
-    float pad   = 22;
+    float pad   = 25;
     float track = y + h * 0.5 + 6;
     float left  = x + pad, right = x + w - pad;
     
@@ -53,7 +53,7 @@ class HorizontalFader {
       displayValue = nf(getValue(), 0, 2);          
     }
 
-    textFont(font); textSize(22); 
+    textFont(font); textSize(18); 
     
     fill(localAccent);
     textAlign(LEFT,  TOP); text(label, x + pad, y + 8);
@@ -92,7 +92,6 @@ class HorizontalFader {
     }
     
     // --- INTEGRATED NETWORK TRANSMISSION ---
-    // Instantly fires OSC message packets whenever the mouse drags a slider knob
     if (net != null) {
       // Right Side Layout Items
       if (label.equals("SCALE"))                     net.transmit("/fader/scale", getValue());
@@ -102,10 +101,12 @@ class HorizontalFader {
       // Left Side Layout Items
       else if (label.equals("MID DRIVE"))             net.transmit("/fader/midDrive", getValue());
       else if (label.equals("HIGH DRIVE"))            net.transmit("/fader/highDrive", getValue());
+      else if (label.equals("LOW DRIVE"))             net.transmit("/fader/lowDrive", getValue());
       else if (label.equals("FEEDBACK"))              net.transmit("/fader/feedback", getValue());
       else if (label.equals("DELAY (ms)"))            net.transmit("/fader/delay", getValue());
       else if (label.equals("TYPE SELECTOR"))         net.transmit("/fader/type", getIntValue());
-      else if (label.equals("REVERB"))                net.transmit("/fader/reverb", getValue());
+      else if (label.equals("LOW MIDDLE XOVER"))      net.transmit("/fader/lmXover", getValue());
+      else if (label.equals("HIGH MIDDLE XOVER"))     net.transmit("/fader/mhXover", getValue());
     }
   }
 }

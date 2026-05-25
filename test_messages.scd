@@ -1,5 +1,5 @@
 (
-// Clean up any existing listeners before starting
+// Free up any old network listeners before running
 OSCdef.freeAll;
 
 "=============================================".postln;
@@ -31,6 +31,10 @@ OSCdef(\printHighDrive, { |msg|
 	("👈 [LEFT]  HIGH DRIVE: " + msg[1]).postln;
 }, '/fader/highDrive');
 
+OSCdef(\printLowDrive, { |msg|
+	("👈 [LEFT]  LOW DRIVE: " + msg[1]).postln;
+}, '/fader/lowDrive');
+
 OSCdef(\printFeedback, { |msg|
 	("👈 [LEFT]  FEEDBACK: " + msg[1]).postln;
 }, '/fader/feedback');
@@ -43,11 +47,15 @@ OSCdef(\printType, { |msg|
 	("👈 [LEFT]  TYPE SELECTOR: " + msg[1].asInteger).postln;
 }, '/fader/type');
 
-OSCdef(\printReverb, { |msg|
-	("👈 [LEFT]  REVERB: " + msg[1]).postln;
-}, '/fader/reverb');
+OSCdef(\printLMX, { |msg|
+	("👈 [LEFT]  LOW MIDDLE XOVER: " + msg[1]).postln;
+}, '/fader/lmXover');
+
+OSCdef(\printMHX, { |msg|
+	("👈 [LEFT]  HIGH MIDDLE XOVER: " + msg[1]).postln;
+}, '/fader/mhXover');
 
 )
 
-// To stop printing completely without closing SuperCollider, run this line:
+// Run this line if you ever want to mute the logs manually:
 // OSCdef.freeAll;

@@ -43,6 +43,9 @@ class OscNetworkManager {
     else if (pattern.equals("/fader/highDrive")) {
       fHighDrive.setValue(value);
     }
+    else if (pattern.equals("/fader/lowDrive")) {
+      fLowDrive.setValue(value);
+    }
     else if (pattern.equals("/fader/feedback")) {
       fFeedback.setValue(value);
     }
@@ -52,9 +55,13 @@ class OscNetworkManager {
     else if (pattern.equals("/fader/type")) {
       fType.setIntValue(value);
     }
-    else if (pattern.equals("/fader/reverb") || pattern.equals("/juce/speed")) {
-      fReverb.setValue(value);
+     else if (pattern.equals("/fader/lmXover")) {
+      fLMX.setValue(value);
     }
+     else if (pattern.equals("/fader/mhXover")) {
+      fMHX.setValue(value);
+    }
+    
     
     // --- Orbit Vector Synchronizations ---
     else if (pattern.equals("/sc/cx")) {
