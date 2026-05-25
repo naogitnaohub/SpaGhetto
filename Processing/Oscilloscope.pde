@@ -1,5 +1,4 @@
 class Oscilloscope {
-  int waveNumber = 2;
   int N;
   Oscilloscope(int n) { N = n; }
 
