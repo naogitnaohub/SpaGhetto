@@ -47,6 +47,7 @@ class OscNetworkManager {
     else if (pattern.equals("/juce/speed")) {
       fSpeed.setValue(value);
     }
+   
   }
 
   // Sends messages from Processing to JUCE when moving sliders

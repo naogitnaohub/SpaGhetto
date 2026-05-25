@@ -1,4 +1,5 @@
 class Oscilloscope {
+  int waveNumber = 2;
   int N;
   Oscilloscope(int n) { N = n; }
 
@@ -11,7 +12,7 @@ class Oscilloscope {
       float t  = (i / (float)N) * TWO_PI;
       float tx = orbit.cx + orbit.r * cos(t);
       float tz = orbit.cz + orbit.r * sin(t);
-      s[i] = terrain.terrain(tx, tz);
+      s[i] = terrain.terrain(terrain.waveNumber, tx, tz);
     }
 
     noFill(); stroke(ACCENT); strokeWeight(1.5);

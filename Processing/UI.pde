@@ -20,21 +20,35 @@ void drawViewport() {
 
 void drawSidePanel() {
   float x   = viewX + viewW + PAD;
-  float gap = 14, scopeH = 150, mapH = 240;
+  float gap = 14;
   float fy  = PAD;
-  float fh  = (height - fy - PAD - scopeH - mapH - 2*gap);
+  
+  // --- MATCH DYNAMIC LAYOUT MATH EXACTLY ---
+  float totalAvailableH = height - (2 * PAD) - (3 * gap);
+  
+  float scopeH = totalAvailableH * 0.25; 
+  float mapH   = totalAvailableH * 0.25; 
+  float fadersTotalH = totalAvailableH * 0.5;
+  float fh     = fadersTotalH / 4.0;
 
+  // Draw the background block behind all faders
   noStroke(); fill(SURFACE);
-  rect(x, fy, SIDE_W, fh);
+  rect(x, fy, SIDE_W, fh * 4); 
+  
   for (HorizontalFader f : faders) f.render();
 
-  float sy = fy + fh + gap;
+  // Draw Oscilloscope Panel
+  float sy = fy + (fh * 4) + gap;
   noStroke(); fill(SURFACE);
   rect(x, sy, SIDE_W, scopeH);
   scope.render(x + 18, sy + 18, SIDE_W - 36, scopeH - 36, terrain, orbit, phase);
 
+  // Draw Minimap Panel
   float my = sy + scopeH + gap;
   noStroke(); fill(SURFACE);
   rect(x, my, SIDE_W, mapH);
+  
+  // Update internal dimensions to prevent offset selection bugs on resize
+  minimap.updatePosition(x, my, SIDE_W, mapH);
   minimap.render(terrain, orbit);
 }
