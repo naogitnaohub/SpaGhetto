@@ -1,81 +1,79 @@
-/*
-  ==============================================================================
-    OSC NETWORK MANAGER
-    
-    This class handles the bidirectional communication between Processing and JUCE via OSC messages.
-    - It listens for knob movements in JUCE and instantly updates Processing's sliders.
-    - It sends messages back to JUCE when you slide faders inside Processing.
-    
-  ==============================================================================
-*/
-
 import oscP5.*;
 import netP5.*;
 
 class OscNetworkManager {
-  OscP5 oscP5;            // Handles incoming network data
-  NetAddress juceAddress; // Stores where to send outgoing network data
+  OscP5 oscP5;            
+  NetAddress scAddress; // Renamed to accurately track your SuperCollider target destination
   PApplet app;
 
   // Port settings 
   final int PORT_IN  = 9001; 
-  final int PORT_OUT = 9002; 
+  final int PORT_OUT = 57120; // --- CHANGED: Points directly to SuperCollider's listener port!
   final String IP_LOCAL = "127.0.0.1";
 
-  // Setup the connection when the function is called
   OscNetworkManager(PApplet app) {
     this.app = app;
     this.oscP5 = new OscP5(app, PORT_IN);
-    this.juceAddress = new NetAddress(IP_LOCAL, PORT_OUT);
-    println("OscNetworkManager: Listening for JUCE dials on Port " + PORT_IN);
+    this.scAddress = new NetAddress(IP_LOCAL, PORT_OUT);
+    println("OscNetworkManager: Direct connection bound to SuperCollider on Port " + PORT_OUT);
   }
 
-  // Receives and parses messages sent from JUCE
+  // Parses incoming data streams (If SuperCollider sends control information back to Processing)
   void parseIncoming(OscMessage msg) {
     String pattern = msg.addrPattern();
-    if (msg.arguments().length == 0) return; // safety for empty messages
+    if (msg.arguments().length == 0) return; 
 
-    float value = msg.get(0).floatValue(); // Grab the first data number
+    float value = msg.get(0).floatValue(); 
 
-    // Sync incoming values directly to Processing faders
-    if (pattern.equals("/juce/scale")) {
-      fScale.setValue(value);
+    // --- Right Side Sync ---
+    if (pattern.equals("/fader/scale") || pattern.equals("/sc/a")) {
+      fScale.setValue(pattern.equals("/sc/a") ? lerp(0.3, 5.0, value) : value);
     } 
-    else if (pattern.equals("/juce/radius")) {
-      fRadius.setValue(value);
+    else if (pattern.equals("/fader/radius") || pattern.equals("/sc/radius")) {
+      fRadius.setValue(pattern.equals("/sc/radius") ? lerp(0.2, 6.0, value) : value);
     } 
-    else if (pattern.equals("/juce/speed")) {
+    else if (pattern.equals("/fader/waveNumber") || pattern.equals("/sc/terrain")) {
+      fWaveTerrain.setIntValue(value);
+    }
+    
+    // --- Left Side Sync ---
+    else if (pattern.equals("/fader/midDrive")) {
+      fMidDrive.setValue(value);
+    }
+    else if (pattern.equals("/fader/highDrive")) {
+      fHighDrive.setValue(value);
+    }
+    else if (pattern.equals("/fader/feedback")) {
+      fFeedback.setValue(value);
+    }
+    else if (pattern.equals("/fader/delay")) {
+      fDelay.setValue(value);
+    }
+    else if (pattern.equals("/fader/type")) {
+      fType.setIntValue(value);
+    }
+    else if (pattern.equals("/fader/reverb") || pattern.equals("/juce/speed")) {
       fReverb.setValue(value);
     }
+    
+    // --- Orbit Vector Synchronizations ---
     else if (pattern.equals("/sc/cx")) {
-    // 0..1 → -8..+8 nel mondo
-    float wx = value * 16 - 8;
-    orbit.setPosition(wx, orbit.cz);
+      float wx = value * 16 - 8;
+      orbit.setPosition(wx, orbit.cz);
     }
     else if (pattern.equals("/sc/cy")) {
-    float wz = value * 16 - 8;
-    orbit.setPosition(orbit.cx, wz);
+      float wz = value * 16 - 8;
+      orbit.setPosition(orbit.cx, wz);
     }
-else if (pattern.equals("/sc/radius")) {
-  // 0..1 → range del fader RADIUS
-  fRadius.setValue(lerp(0.2, 6.0, value));
-}
-else if (pattern.equals("/sc/a")) {
-  fScale.setValue(lerp(0.3, 5.0, value));
-}
-else if (pattern.equals("/sc/b")) {
-  // b non ha un fader, lo settiamo direttamente sul terreno
-  terrain.setB(lerp(0.1, 2.0, value));
-}
-else if (pattern.equals("/sc/terrain")) {
-  terrain.setWaveNumber((int) value);
-}
+    else if (pattern.equals("/sc/b")) {
+      terrain.setB(lerp(0.1, 2.0, value));
+    }
   }
 
-  // Sends messages from Processing to JUCE when moving sliders
+  // Packages parameters up and fires them cleanly over the localhost bridge loop
   void transmit(String addressPattern, float parameterValue) {
     OscMessage messagePacket = new OscMessage(addressPattern);
     messagePacket.add(parameterValue);
-    oscP5.send(messagePacket, juceAddress);
+    oscP5.send(messagePacket, scAddress);
   }
 }

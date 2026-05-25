@@ -5,7 +5,7 @@ class HorizontalFader {
   private float norm = 0.5;
   private boolean dragging = false;
   
-  // NEW variable: Tracks the color of this specific fader
+  // Tracks the color of this specific fader (Defaults to neon green)
   color localAccent = #4ade80; 
 
   HorizontalFader(float x, float y, float w, float h,
@@ -15,7 +15,6 @@ class HorizontalFader {
     this.minVal = minVal; this.maxVal = maxVal;
   }
 
-  
   void setAccentColor(color c) {
     this.localAccent = c;
   }
@@ -56,17 +55,16 @@ class HorizontalFader {
 
     textFont(font); textSize(22); 
     
-    // UPDATED: Replaced global ACCENT constant with our flexible localAccent
     fill(localAccent);
     textAlign(LEFT,  TOP); text(label, x + pad, y + 8);
     textAlign(RIGHT, TOP); text(displayValue, x + w - pad, y + 8); 
 
     stroke(BG);          strokeWeight(2); line(left, track, right, track);
-    stroke(localAccent); strokeWeight(2); line(left, track, hx, track); // UPDATED COLOR
+    stroke(localAccent); strokeWeight(2); line(left, track, hx, track); 
 
     rectMode(CENTER);
     noStroke();    fill(BG);          rect(hx, track, 16, 24, 3);
-    stroke(localAccent); fill(SURFACE); rect(hx, track, 12, 20, 2); // UPDATED COLOR
+    stroke(localAccent); fill(SURFACE); rect(hx, track, 12, 20, 2); 
     rectMode(CORNER);
     popStyle();
   }
@@ -91,6 +89,23 @@ class HorizontalFader {
       norm = (snappedVal - minVal) / (maxVal - minVal);
     } else {
       norm = rawNorm; 
+    }
+    
+    // --- INTEGRATED NETWORK TRANSMISSION ---
+    // Instantly fires OSC message packets whenever the mouse drags a slider knob
+    if (net != null) {
+      // Right Side Layout Items
+      if (label.equals("SCALE"))                     net.transmit("/fader/scale", getValue());
+      else if (label.equals("RADIUS"))                net.transmit("/fader/radius", getValue());
+      else if (label.equals("WAVE TERRAIN FUNCTION")) net.transmit("/fader/waveNumber", getIntValue());
+      
+      // Left Side Layout Items
+      else if (label.equals("MID DRIVE"))             net.transmit("/fader/midDrive", getValue());
+      else if (label.equals("HIGH DRIVE"))            net.transmit("/fader/highDrive", getValue());
+      else if (label.equals("FEEDBACK"))              net.transmit("/fader/feedback", getValue());
+      else if (label.equals("DELAY (ms)"))            net.transmit("/fader/delay", getValue());
+      else if (label.equals("TYPE SELECTOR"))         net.transmit("/fader/type", getIntValue());
+      else if (label.equals("REVERB"))                net.transmit("/fader/reverb", getValue());
     }
   }
 }

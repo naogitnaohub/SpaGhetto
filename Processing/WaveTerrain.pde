@@ -1,5 +1,5 @@
 class Terrain3D {
-  final int   RES    = 120;
+  final int   RES    = 40;
   final float SPAN   = 16.0;
   // Modified versoin of waveTerrain that allows changes between 4 functions to draw the terrain
   int waveNumber = 2;
