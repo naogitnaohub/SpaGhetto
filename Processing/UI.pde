@@ -19,36 +19,41 @@ void drawViewport() {
 }
 
 void drawSidePanel() {
-  float x   = viewX + viewW + PAD;
   float gap = 14;
   float fy  = PAD;
   
-  // --- MATCH DYNAMIC LAYOUT MATH EXACTLY ---
   float totalAvailableH = height - (2 * PAD) - (3 * gap);
-  
-  float scopeH = totalAvailableH * 0.25; 
-  float mapH   = totalAvailableH * 0.25; 
-  float fadersTotalH = totalAvailableH * 0.5;
-  float fh     = fadersTotalH / 4.0;
+  float scopeH       = totalAvailableH * 0.25; 
+  float mapH         = totalAvailableH * 0.25; 
+  float fadersTotalH = totalAvailableH * 0.50;
 
-  // Draw the background block behind all faders
+  // ==========================================
+  //  RENDER LEFT SIDE PANEL (Faders Only)
+  // ==========================================
   noStroke(); fill(SURFACE);
-  rect(x, fy, SIDE_W, fh * 4); 
+  rect(leftX, fy, SIDE_W, fadersTotalH); 
   
-  for (HorizontalFader f : faders) f.render();
+  for (HorizontalFader f : leftFaders) f.render();
 
-  // Draw Oscilloscope Panel
-  float sy = fy + (fh * 4) + gap;
+  // ==========================================
+  //  RENDER RIGHT SIDE PANEL (Faders + Graphs)
+  // ==========================================
   noStroke(); fill(SURFACE);
-  rect(x, sy, SIDE_W, scopeH);
-  scope.render(x + 18, sy + 18, SIDE_W - 36, scopeH - 36, terrain, orbit, phase);
+  rect(rightX, fy, SIDE_W, fadersTotalH); 
+  
+  for (HorizontalFader f : rightFaders) f.render();
 
-  // Draw Minimap Panel
+  // Draw Oscilloscope Box
+  float sy = fy + fadersTotalH + gap;
+  noStroke(); fill(SURFACE);
+  rect(rightX, sy, SIDE_W, scopeH);
+  scope.render(rightX + 18, sy + 18, SIDE_W - 36, scopeH - 36, terrain, orbit, phase);
+
+  // Draw Minimap Box
   float my = sy + scopeH + gap;
   noStroke(); fill(SURFACE);
-  rect(x, my, SIDE_W, mapH);
+  rect(rightX, my, SIDE_W, mapH);
   
-  // Update internal dimensions to prevent offset selection bugs on resize
-  minimap.updatePosition(x, my, SIDE_W, mapH);
+  minimap.updatePosition(rightX, my, SIDE_W, mapH);
   minimap.render(terrain, orbit);
 }

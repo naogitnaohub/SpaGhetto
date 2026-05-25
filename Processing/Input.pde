@@ -11,10 +11,14 @@ void mousePressed() {
   if (overViewport(mouseX, mouseY)) {
     dragInView = true; lastMx = mouseX; lastMy = mouseY; return;
   }
+  
   if (minimap.over(mouseX, mouseY)) {
-    minimap.handleClick(mouseX, mouseY, orbit); return;
+    minimap.handleClick(mouseX, mouseY, orbit);
+    return;
   }
-  for (HorizontalFader f : faders) f.checkMousePressed(mouseX, mouseY);
+  
+  for (HorizontalFader f : leftFaders) f.checkMousePressed(mouseX, mouseY);
+  for (HorizontalFader f : rightFaders) f.checkMousePressed(mouseX, mouseY);
 }
 
 void mouseDragged() {
@@ -22,15 +26,20 @@ void mouseDragged() {
     cam.mouseDrag(mouseX - lastMx, mouseY - lastMy);
     lastMx = mouseX; lastMy = mouseY; return;
   }
+  
   if (minimap.over(mouseX, mouseY)) {
-    minimap.handleClick(mouseX, mouseY, orbit); return;
+    minimap.handleClick(mouseX, mouseY, orbit);
+    return;
   }
-  for (HorizontalFader f : faders) f.checkMouseDragged(mouseX, mouseY);
+  
+  for (HorizontalFader f : leftFaders) f.checkMouseDragged(mouseX, mouseY);
+  for (HorizontalFader f : rightFaders) f.checkMouseDragged(mouseX, mouseY);
 }
 
 void mouseReleased() {
   dragInView = false;
-  for (HorizontalFader f : faders) f.release();
+  for (HorizontalFader f : leftFaders) f.release();
+  for (HorizontalFader f : rightFaders) f.release();
 }
 
 void mouseWheel(MouseEvent e) {

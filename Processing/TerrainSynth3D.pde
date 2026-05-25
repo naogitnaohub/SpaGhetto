@@ -1,6 +1,6 @@
 // =====================================================
 //  TERRAIN SYNTH 3D
-//  Funzione: f(x,z) = sin( ( z·sin z − x·sin x · log(z²+1) ) / a )
+
 // =====================================================
 
 // --- colori ---
@@ -12,6 +12,7 @@ final color AMBER   = #d946ef;
 // --- layout ---
 float PAD = 18, SIDE_W;
 float viewX, viewY, viewW, viewH;
+float leftX, rightX; // Tracks the starting X position of both panels
 
 // --- mondo ---
 PGraphics    view3D;
@@ -20,8 +21,16 @@ Orbit3D      orbit;
 CameraRig    cam;
 Oscilloscope scope;
 Minimap      minimap;
-HorizontalFader fScale, fRadius, fSpeed, fWaveTerrain;
-HorizontalFader[] faders;
+
+// --- Left Panel Controls (Now 6 Faders) ---
+HorizontalFader fMidDrive, fHighDrive, fFeedback, fDelay, fType, fReverb;
+
+// --- Right Panel Controls (Now 3 Faders) ---
+HorizontalFader fScale, fRadius, fWaveTerrain;
+
+// Global array groups for interface distribution loops
+HorizontalFader[] leftFaders;
+HorizontalFader[] rightFaders;
 PFont font;
 
 // --- network ---
@@ -32,8 +41,6 @@ float phase = 0;
 int   lastTime = 0;
 
 void settings() {
-  // displayWidth/Height = dimensione reale dello schermo
-  // -60 lascia spazio alla taskbar
   size(displayWidth, displayHeight - 60, P2D);
 }
 
@@ -49,7 +56,7 @@ void setup() {
   orbit   = new Orbit3D();
   cam     = new CameraRig();
   scope   = new Oscilloscope(256);
-  net     = new OscNetworkManager(this);   // <-- qui
+  net     = new OscNetworkManager(this);   
 
   layout();
   lastTime = millis();
@@ -57,57 +64,87 @@ void setup() {
 
 void layout() {
   PAD    = max(12, width * 0.012);
-  SIDE_W = constrain(width * 0.28, 380, 600);
+  SIDE_W = constrain(width * 0.24, 320, 500); 
 
-  viewX = PAD; viewY = PAD;
-  viewW = width - SIDE_W - 3*PAD;
-  viewH = height - 2*PAD;
+  // --- DUAL PANEL VIEWPORT POSITIONING ---
+  leftX  = PAD;
+  viewX  = leftX + SIDE_W + PAD;
+  viewW  = width - (SIDE_W * 2) - (4 * PAD); 
+  viewH  = height - 2*PAD;
+  rightX = viewX + viewW + PAD;
+  
   view3D = createGraphics((int)viewW, (int)viewH, P3D);
 
-  float px = viewX + viewW + PAD;
   float gap = 14;
   float fy = PAD;
   
   // --- RESPONSIVE HEIGHT ALLOCATION ---
-  // Subtract paddings and spacing gaps from total screen height
   float totalAvailableH = height - (2 * PAD) - (3 * gap);
   
-  float scopeH = totalAvailableH * 0.25; // Oscilloscope gets 25% of the space
-  float mapH   = totalAvailableH * 0.25; // Minimap gets 40% of the space
-  float fadersTotalH = totalAvailableH * 0.5; // Faders share the remaining 35%
-  float fh     = fadersTotalH / 4.0;    // Divided equally among 4 fader rows
-
-  // Preserve existing slider values if already initialized
-  float sV = fScale  != null ? fScale.getValue()  : 1.5;
-  float rV = fRadius != null ? fRadius.getValue() : 2.0;
-  float pV = fSpeed  != null ? fSpeed.getValue()  : 1.0;
-  float wV = fWaveTerrain != null ? fWaveTerrain.getIntValue() : 1.0;
-
-  fScale  = new HorizontalFader(px, fy + fh*0, SIDE_W, fh, "SCALE",  0.3, 5.0);
-  fRadius = new HorizontalFader(px, fy + fh*1, SIDE_W, fh, "RADIUS", 0.2, 6.0);
-  fSpeed  = new HorizontalFader(px, fy + fh*2, SIDE_W, fh, "SPEED",  0.1, 4.0);
-  fWaveTerrain = new HorizontalFader(px, fy + fh*3, SIDE_W, fh, "WAVE TERRAIN FUNCTION", 1.0, 4.0);
+  float scopeH       = totalAvailableH * 0.25; 
+  float mapH         = totalAvailableH * 0.25; 
+  float fadersTotalH = totalAvailableH * 0.5; 
   
-  faders  = new HorizontalFader[] { fScale, fRadius, fSpeed, fWaveTerrain };
-  fScale.setValue(sV); fRadius.setValue(rV); fSpeed.setValue(pV); fWaveTerrain.setIntValue(wV);
+  // UPDATED COUNTS: Left has 6 faders, Right has 3 faders now!
+  float fhLeft  = fadersTotalH / 6.0;    
+  float fhRight = fadersTotalH / 3.0;    
+
+  // --- BACKUP VALUES ---
+  float sV   = fScale      != null ? fScale.getValue()       : 1.5;
+  float rV   = fRadius     != null ? fRadius.getValue()      : 2.0;
+  float pV   = fReverb     != null ? fReverb.getValue()      : 1.0;
+  float wV   = fWaveTerrain!= null ? fWaveTerrain.getIntValue() : 1.0;
+  float midV = fMidDrive   != null ? fMidDrive.getValue()    : 0.2;
+  float higV = fHighDrive  != null ? fHighDrive.getValue()   : 0.1;
+  float feeV = fFeedback   != null ? fFeedback.getValue()    : 0.3;
+  float delV = fDelay      != null ? fDelay.getValue()       : 250.0;
+  float typV = fType       != null ? fType.getIntValue()     : 1.0;
+
+  // --- INITIALIZE LEFT FADERS (All on leftX, divided by fhLeft) ---
+  fMidDrive  = new HorizontalFader(leftX, fy + fhLeft*0, SIDE_W, fhLeft, "MID DRIVE", 0.0, 1.0);
+  fHighDrive = new HorizontalFader(leftX, fy + fhLeft*1, SIDE_W, fhLeft, "HIGH DRIVE", 0.0, 1.0);
+  fFeedback  = new HorizontalFader(leftX, fy + fhLeft*2, SIDE_W, fhLeft, "FEEDBACK", 0.0, 1.0);
+  fDelay     = new HorizontalFader(leftX, fy + fhLeft*3, SIDE_W, fhLeft, "DELAY (ms)", 0.0, 1000.0);
+  fType      = new HorizontalFader(leftX, fy + fhLeft*4, SIDE_W, fhLeft, "TYPE SELECTOR", 1.0, 4.0);
+  fReverb    = new HorizontalFader(leftX, fy + fhLeft*5, SIDE_W, fhLeft, "REVERB",  0.1, 4.0); // Moved to leftX
+
+  // --- INITIALIZE RIGHT FADERS (All on rightX, divided by fhRight) ---
+  fScale       = new HorizontalFader(rightX, fy + fhRight*0, SIDE_W, fhRight, "SCALE",  0.3, 5.0);
+  fRadius      = new HorizontalFader(rightX, fy + fhRight*1, SIDE_W, fhRight, "RADIUS", 0.2, 6.0);
+  fWaveTerrain = new HorizontalFader(rightX, fy + fhRight*2, SIDE_W, fhRight, "WAVE TERRAIN FUNCTION", 1.0, 4.0);
+  
+    // --- DEFINE BOTH ARRAYS CORRECTLY ---
+  leftFaders  = new HorizontalFader[] { fMidDrive, fHighDrive, fFeedback, fDelay, fType, fReverb };
+  rightFaders = new HorizontalFader[] { fScale, fRadius, fWaveTerrain };
+  
+  // --- NEW COLOR ASSIGNMENT FOR LEFT PANEL ---
+ 
+  color leftSideColor = color(240, 136, 80); 
+  for (HorizontalFader f : leftFaders) {
+    f.setAccentColor(leftSideColor);
+    
+  }
+
+  
+  // Restore values
+  fScale.setValue(sV); fRadius.setValue(rV); fReverb.setValue(pV); fWaveTerrain.setIntValue(wV);
+  fMidDrive.setValue(midV); fHighDrive.setValue(higV); fFeedback.setValue(feeV); fDelay.setValue(delV); fType.setIntValue(typV);
 
   // Position coordinates calculated dynamically
-  float sy = fy + (fh * 4) + gap;
+  float sy = fy + fadersTotalH + gap;
   float my = sy + scopeH + gap; 
   
   if (minimap == null) {
-    minimap = new Minimap(px, my, SIDE_W, mapH);
+    minimap = new Minimap(rightX, my, SIDE_W, mapH);
   } else {
-    minimap.updatePosition(px, my, SIDE_W, mapH); // Push updates to the map container
+    minimap.updatePosition(rightX, my, SIDE_W, mapH); 
   }
 
   lastW = width; lastH = height;
   lastTime = millis();
 }
 
-
 void draw() {
-  // ricalcola layout se la finestra è stata ridimensionata
   if (width != lastW || height != lastH) layout();
 
   int now = millis();
@@ -116,7 +153,7 @@ void draw() {
 
   terrain.setA(fScale.getValue());
   orbit.setRadius(fRadius.getValue());
-  phase = (phase + TWO_PI * fSpeed.getValue() * dt) % TWO_PI;
+  phase = (phase + TWO_PI * 0.5 * dt) % TWO_PI;
   
   int currentWave = fWaveTerrain.getIntValue(); 
   terrain.setWaveNumber(currentWave);
@@ -127,7 +164,6 @@ void draw() {
   drawSidePanel();
 }
 
-// Global router forwards network packets directly to your manager tab
 void oscEvent(OscMessage msg) {
   if (net != null) net.parseIncoming(msg);
 }

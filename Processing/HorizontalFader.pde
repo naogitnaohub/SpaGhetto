@@ -4,6 +4,9 @@ class HorizontalFader {
   float minVal, maxVal;
   private float norm = 0.5;
   private boolean dragging = false;
+  
+  // NEW variable: Tracks the color of this specific fader
+  color localAccent = #4ade80; 
 
   HorizontalFader(float x, float y, float w, float h,
                   String label, float minVal, float maxVal) {
@@ -12,10 +15,14 @@ class HorizontalFader {
     this.minVal = minVal; this.maxVal = maxVal;
   }
 
+  
+  void setAccentColor(color c) {
+    this.localAccent = c;
+  }
+
   void  setValue(float v) { norm = (v - minVal) / (maxVal - minVal); }
   float getValue()        { return minVal + norm * (maxVal - minVal); }
   
-  // --- Cleaned up Integer Helpers ---
   void setIntValue(float v) { 
     float snappedValue = constrain(round(v), minVal, maxVal);
     norm = (snappedValue - minVal) / (maxVal - minVal); 
@@ -36,10 +43,9 @@ class HorizontalFader {
     float left  = x + pad, right = x + w - pad;
     
     float hx;
-    String displayValue; // Added declaration to fix compile error
+    String displayValue;
     
-    // Updated to use getIntValue() instead of getStepValue()
-    if (label.equals("WAVE TERRAIN FUNCTION")) {
+    if (label.equals("WAVE TERRAIN FUNCTION") || label.equals("TYPE SELECTOR")) {
       float snappedNorm = (getIntValue() - minVal) / (maxVal - minVal);
       hx = lerp(left, right, snappedNorm);
       displayValue = String.valueOf(getIntValue()); 
@@ -48,19 +54,19 @@ class HorizontalFader {
       displayValue = nf(getValue(), 0, 2);          
     }
 
-    textFont(font); textSize(22);
-    fill(ACCENT);
+    textFont(font); textSize(22); 
+    
+    // UPDATED: Replaced global ACCENT constant with our flexible localAccent
+    fill(localAccent);
     textAlign(LEFT,  TOP); text(label, x + pad, y + 8);
-    
-    
     textAlign(RIGHT, TOP); text(displayValue, x + w - pad, y + 8); 
 
-    stroke(BG);     strokeWeight(2); line(left, track, right, track);
-    stroke(ACCENT); strokeWeight(2); line(left, track, hx, track);
+    stroke(BG);          strokeWeight(2); line(left, track, right, track);
+    stroke(localAccent); strokeWeight(2); line(left, track, hx, track); // UPDATED COLOR
 
     rectMode(CENTER);
-    noStroke();    fill(BG);      rect(hx, track, 16, 24, 3);
-    stroke(ACCENT); fill(SURFACE); rect(hx, track, 12, 20, 2);
+    noStroke();    fill(BG);          rect(hx, track, 16, 24, 3);
+    stroke(localAccent); fill(SURFACE); rect(hx, track, 12, 20, 2); // UPDATED COLOR
     rectMode(CORNER);
     popStyle();
   }
@@ -79,13 +85,12 @@ class HorizontalFader {
     float pad = 22;
     float rawNorm = constrain((mx - x - pad) / (w - 2*pad), 0, 1);
     
-    // CRITICAL SNAP FIX: If it's your integer fader, instantly step the norm value
-    if (label.equals("WAVE TERRAIN FUNCTION")) {
+    if (label.equals("WAVE TERRAIN FUNCTION") || label.equals("TYPE SELECTOR")) {
       float rawVal = minVal + rawNorm * (maxVal - minVal);
       float snappedVal = constrain(round(rawVal), minVal, maxVal);
       norm = (snappedVal - minVal) / (maxVal - minVal);
     } else {
-      norm = rawNorm; // Keep fluid decimal for scale, radius, speed
+      norm = rawNorm; 
     }
   }
 }

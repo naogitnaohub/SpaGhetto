@@ -45,7 +45,7 @@ class OscNetworkManager {
       fRadius.setValue(value);
     } 
     else if (pattern.equals("/juce/speed")) {
-      fSpeed.setValue(value);
+      fReverb.setValue(value);
     }
    
   }

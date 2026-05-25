@@ -108,7 +108,7 @@ class Terrain3D {
   private int getGradientColor(float t) {
     // Define your palette stops
     int col1 = color(12, 11, 10);     // Deep valley floor (Matches your BG black)
-    int col2 = color(137, 70, 239);   // Slopes: Bright Pink/Magenta (AMBER global color)
+    int col2 = color(250, 136, 66);   // Slopes: Bright Pink/Magenta (AMBER global color)
     int col3 = color(255, 255, 0);   // Ridges: Neon Green (ACCENT global color)
     int col4 = color(74, 222, 128);  // Peaks: Pure crisp white highlight
   
