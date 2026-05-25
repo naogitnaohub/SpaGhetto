@@ -47,7 +47,6 @@ void settings() {
 int lastW = -1, lastH = -1;
 
 void setup() {
-  SIDE_W = width/3;
   surface.setLocation(0, 0);
   surface.setTitle("Terrain Synth 3D");
   font = createFont("Consolas", 32, true);
