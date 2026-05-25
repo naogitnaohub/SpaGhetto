@@ -47,6 +47,29 @@ class OscNetworkManager {
     else if (pattern.equals("/juce/speed")) {
       fSpeed.setValue(value);
     }
+    else if (pattern.equals("/sc/cx")) {
+    // 0..1 → -8..+8 nel mondo
+    float wx = value * 16 - 8;
+    orbit.setPosition(wx, orbit.cz);
+    }
+    else if (pattern.equals("/sc/cy")) {
+    float wz = value * 16 - 8;
+    orbit.setPosition(orbit.cx, wz);
+    }
+else if (pattern.equals("/sc/radius")) {
+  // 0..1 → range del fader RADIUS
+  fRadius.setValue(lerp(0.2, 6.0, value));
+}
+else if (pattern.equals("/sc/a")) {
+  fScale.setValue(lerp(0.3, 5.0, value));
+}
+else if (pattern.equals("/sc/b")) {
+  // b non ha un fader, lo settiamo direttamente sul terreno
+  terrain.setB(lerp(0.1, 2.0, value));
+}
+else if (pattern.equals("/sc/terrain")) {
+  terrain.setWaveNumber((int) value);
+}
   }
 
   // Sends messages from Processing to JUCE when moving sliders

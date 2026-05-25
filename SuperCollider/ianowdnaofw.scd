@@ -5,6 +5,10 @@ s.scope;
 s.freqscope;
 )
 
+// Indirizzo OSC verso Processing
+~processing = NetAddr("127.0.0.1", 9001);
+
+
 // =====================================================================
 // FASE 1: ALLOCAZIONE BUS DI CONTROLLO
 // Questi conterranno SOLO valori normalizzati (da 0.0 a 1.0)
@@ -122,22 +126,28 @@ Ndef(\myTerrain).play;
 // =====================================================================
 (
 OSCdef(\sensorInput, { |msg, time, addr, recvPort|
-    // Scommenta la riga qui sotto se vuoi VEDERE i dati grezzi in arrivo
-    msg.postln;
-
-    ~b_cx.set(msg[1].linlin(0, 1023, 0.0, 1.0));
-    ~b_cy.set(msg[2].linlin(0, 1023, 0.0, 1.0));
-    ~b_r.set(msg[5].linlin(100, 600, 0.0, 1.0));
-    ~b_a.set(msg[4].linlin(150, 500, 0.0, 1.0));
-    ~b_b.set(msg[5].linlin(200, 700, 0.0, 1.0));
+    var cx, cy, r, a, b;
+    cx = msg[1].linlin(0, 1023, 0.0, 1.0);
+    cy = msg[2].linlin(0, 1023, 0.0, 1.0);
+    r  = msg[5].linlin(100, 600, 0.0, 1.0);
+    a  = msg[4].linlin(150, 500, 0.0, 1.0);
+    b  = msg[5].linlin(200, 700, 0.0, 1.0);
+    ~b_cx.set(cx); ~b_cy.set(cy);
+    ~b_r.set(r);   ~b_a.set(a);   ~b_b.set(b);
+    // inoltra a Processing
+    ~processing.sendMsg("/sc/cx", cx);
+    ~processing.sendMsg("/sc/cy", cy);
+    ~processing.sendMsg("/sc/radius", r);
+    ~processing.sendMsg("/sc/a", a);
+    ~processing.sendMsg("/sc/b", b);
 }, '/sensors');
-
 OSCdef(\buttonInput, { |msg, time, addr, recvPort|
     if(msg[1] == 1) {
         ~currentIndex = (~currentIndex + 1) % ~terrainNames.size;
         ~loadTerrain.value(~terrainNames[~currentIndex]);
+        // 1-based per coerenza col waveNumber di Processing
+        ~processing.sendMsg("/sc/terrain", ~currentIndex + 1);
     };
 }, '/btn');
 
-"OSCdefs in ascolto sulla porta: %".format(NetAddr.langPort).postln;
 )
