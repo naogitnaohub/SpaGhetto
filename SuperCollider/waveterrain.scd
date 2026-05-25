@@ -172,45 +172,41 @@ Ndef(\myTerrain).play;
 
 
 // =====================================================================
-// FASE 4: RICEVITORI OSC (NUOVA MAPPATURA ACCELEROMETRO / JOYSTICK)
+// FASE 4: RICEVITORI OSC + INOLTRO A PROCESSING
 // =====================================================================
+~processing = NetAddr("127.0.0.1", 9001);
+
 (
 OSCdef(\sensorInput, { |msg, time, addr, recvPort|
-    // msg.postln; // Scommenta solo se vuoi fare debug e vedere i numeri
+    // msg.postln;
 
-    // --- NUOVA MAPPATURA ---
-    // msg[1]=jx, msg[2]=jy, msg[3]=ax, msg[4]=ay, msg[5]=az
-
-    // 1. Accelerometro (ax, ay) muove il centro dell'orbita (X, Y)
-    ~b_cx.set(msg[3].linlin(0, 1023, 0.0, 1.0)); //100-700
-    ~b_cy.set(msg[4].linlin(0, 1023, 0.0, 1.0)); //100-700
-
-    // 2. Accelerometro (az) muove il Raggio
-    ~b_r.set(msg[5].linlin(0, 1023, 0.0, 1.0)); //100-600
-
-    // 3. Joystick (jx, jy) modula i parametri timbrici A e B
+    // --- aggiorna bus interni SC ---
+    ~b_cx.set(msg[3].linlin(0, 1023, 0.0, 1.0));
+    ~b_cy.set(msg[4].linlin(0, 1023, 0.0, 1.0));
+    ~b_r.set(msg[5].linlin(0, 1023, 0.0, 1.0));
     ~b_a.set(msg[1].linlin(200, 1000, 0.0, 1.0));
     ~b_b.set(msg[2].linlin(200, 1000, 0.0, 1.0));
 
+    // --- inoltra a Processing ---
+    ~processing.sendMsg("/sc/cx",     msg[3].linlin(0, 1023, 0.0, 1.0));
+    ~processing.sendMsg("/sc/cy",     msg[4].linlin(0, 1023, 0.0, 1.0));
+    ~processing.sendMsg("/sc/radius", msg[5].linlin(0, 1023, 0.0, 1.0));
+    ~processing.sendMsg("/sc/a",      msg[1].linlin(200, 1000, 0.0, 1.0));
+    ~processing.sendMsg("/sc/b",      msg[2].linlin(200, 1000, 0.0, 1.0));
 }, '/sensors');
 
 
-// MACCHINA A STATI (BOTTONE)
 OSCdef(\buttonInput, { |msg, time, addr, recvPort|
     if(msg[1] == 0) {
         if(~isLayered == false) {
-            // STATO 1: FREEZE (Drone)
             var currentTerrain = ~terrainNames[~currentIndex];
             "--- FREEZE! --- Salvataggio % come Drone...".format(currentTerrain).postln;
 
-            // 1. Leggiamo (in modo sincrono) il valore esatto dei bus in questo istante
             ~b_cx.get({ |val_cx|
             ~b_cy.get({ |val_cy|
             ~b_r.get({  |val_r|
             ~b_a.get({  |val_a|
             ~b_b.get({  |val_b|
-
-                // 2. Creiamo il drone passandogli i valori congelati (isLive = false)
                 Ndef(\drone).fadeTime = 0.5;
                 Ndef(\drone, ~makeTerrainFunc.value(currentTerrain, false));
                 Ndef(\drone).set(
@@ -219,7 +215,6 @@ OSCdef(\buttonInput, { |msg, time, addr, recvPort|
                 );
             })})})})});
 
-            // 3. Avanziamo il suono LIVE al terreno successivo
             ~currentIndex = (~currentIndex + 1) % ~terrainNames.size;
             "Nuovo suono Live: %".format(~terrainNames[~currentIndex]).postln;
             Ndef(\live).fadeTime = 0.5;
@@ -227,13 +222,10 @@ OSCdef(\buttonInput, { |msg, time, addr, recvPort|
 
             ~isLayered = true;
         } {
-            // STATO 0: CLEAR (Solo)
             "--- CLEAR! --- Spegnimento Drone...".postln;
-
             Ndef(\drone).fadeTime = 4;
-            Ndef(\drone).clear(4); // Rilascia il synth con un fade di 4 secondi
+            Ndef(\drone).clear(4);
 
-            // Avanziamo il suono LIVE
             ~currentIndex = (~currentIndex + 1) % ~terrainNames.size;
             "Nuovo suono Live: %".format(~terrainNames[~currentIndex]).postln;
             Ndef(\live).fadeTime = 0.5;
@@ -241,8 +233,11 @@ OSCdef(\buttonInput, { |msg, time, addr, recvPort|
 
             ~isLayered = false;
         };
+
+        // --- inoltra a Processing ---
+        ~processing.sendMsg("/sc/terrain", ~currentIndex + 1);
     };
 }, '/btn');
 
-"OSCdefs in ascolto con nuova mappatura (Acc=Movimento, Joy=Timbro)".postln;
+"OSCdefs attive + inoltro a Processing su porta 9001".postln;
 )
